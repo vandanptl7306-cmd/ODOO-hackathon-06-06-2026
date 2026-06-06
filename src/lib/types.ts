@@ -14,7 +14,7 @@ export interface User {
   avatarUrl?: string;
 }
 
-export type VendorStatus = "active" | "inactive" | "blacklisted";
+export type VendorStatus = "active" | "pending" | "blocked";
 
 export interface Vendor {
   id: string;

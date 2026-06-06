@@ -15,14 +15,16 @@ function AuthedLayout() {
   if (!user) return <Navigate to="/login" />;
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <AppSidebar />
-        <SidebarInset className="flex flex-col">
-          <AppTopbar />
-          <main className="flex-1">
-            <Outlet />
-          </main>
-        </SidebarInset>
+      <div className="flex flex-col min-h-screen w-full bg-background">
+        <AppTopbar />
+        <div className="flex flex-1 w-full overflow-hidden">
+          <AppSidebar />
+          <SidebarInset className="flex-1 overflow-y-auto">
+            <main className="flex-1">
+              <Outlet />
+            </main>
+          </SidebarInset>
+        </div>
       </div>
       <Toaster richColors position="top-right" />
     </SidebarProvider>

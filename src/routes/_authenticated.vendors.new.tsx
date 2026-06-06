@@ -73,8 +73,8 @@ function NewVendorPage() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="blacklisted">Blacklisted</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="blocked">Blocked</SelectItem>
                   </SelectContent>
                 </Select>
               </Field>

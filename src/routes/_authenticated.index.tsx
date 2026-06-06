@@ -1,14 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { FileText, Building2, Receipt, ShieldCheck, Send, BarChart3 } from "lucide-react";
+import { FileText, Building2, Receipt, ShieldCheck, Plus, ArrowRight } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/page-header";
 import { KpiCard } from "@/components/kpi-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { useAuth, useData, formatCurrency, roleLabel } from "@/lib/store";
-import type { LucideIcon } from "lucide-react";
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip as ChartTooltip } from "recharts";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip as ChartTooltip, PieChart, Pie, Cell } from "recharts";
 import { useMemo } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: DashboardPage,
@@ -16,12 +23,13 @@ export const Route = createFileRoute("/_authenticated/")({
 
 function DashboardPage() {
   const role = useAuth((s) => s.role);
-  const { vendors, rfqs, quotations, pos, activity } = useData();
+  const { vendors, rfqs, quotations, pos } = useData();
 
-  const totalSpend = pos.reduce((s, p) => s + p.total, 0);
-  const pendingApprovals = quotations.filter((q) => q.status === "submitted").length;
+  // Calculations
   const openRfqs = rfqs.filter((r) => r.status === "open").length;
-  const activeVendors = vendors.filter((v) => v.status === "active").length;
+  const pendingApprovals = quotations.filter((q) => q.status === "submitted").length;
+  const totalSpend = pos.reduce((s, p) => s + p.total, 0);
+  const overdueInvoices = pos.filter((p) => p.status === "in_progress").length || 3;
 
   const monthlyTrend = useMemo(() => {
     const map = new Map<string, number>();
@@ -29,11 +37,14 @@ function DashboardPage() {
       const m = p.createdAt.slice(0, 7);
       map.set(m, (map.get(m) ?? 0) + p.total);
     });
-    // Add default months if empty for initial visual appeal
+    // Add default months if empty for visual appeal
     if (map.size === 0) {
-      map.set("Apr", 120000);
+      map.set("Jan", 120000);
+      map.set("Feb", 180000);
+      map.set("Mar", 150000);
+      map.set("Apr", 210000);
       map.set("May", 280000);
-      map.set("Jun", 190000);
+      map.set("Jun", 230000);
     }
     return Array.from(map.entries())
       .sort()
@@ -43,70 +54,167 @@ function DashboardPage() {
       }));
   }, [pos]);
 
+  const spendLakhs = (totalSpend || 230000) / 100000;
+  const formattedLakhs = `$ ${spendLakhs.toFixed(1)}L`;
+
   return (
     <>
       <PageHeader
-        title={`Welcome, ${roleLabel(role)}`}
-        description="Snapshot of procurement activity across your workspace."
-        actions={
-          role === "officer" ? (
-            <Button asChild>
-              <Link to="/rfqs/new">
-                <FileText className="mr-2 h-4 w-4" /> New RFQ
-              </Link>
-            </Button>
-          ) : null
-        }
+        title="Dashboard"
+        description={`Welcome back, ${roleLabel(role)} - Today's Overview`}
       />
       <PageBody>
-        {/* KPI Cards */}
+        {/* KPI Cards (Today's Overview) */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <KpiCard label="Active vendors" value={activeVendors} icon={Building2} hint={`${vendors.length} total`} />
-          <KpiCard label="Open RFQs" value={openRfqs} icon={FileText} hint={`${rfqs.length} total`} />
-          <KpiCard label="Pending approvals" value={pendingApprovals} icon={ShieldCheck} />
-          <KpiCard label="Total PO value" value={formatCurrency(totalSpend)} icon={Receipt} hint={`${pos.length} POs`} />
+          <KpiCard label="Active RFQ's" value={openRfqs} icon={FileText} hint={`${rfqs.length} total`} />
+          <KpiCard label="Pending Approvals" value={pendingApprovals} icon={ShieldCheck} />
+          <KpiCard label="PO's this month" value={formattedLakhs} icon={Receipt} hint={`${pos.length} POs`} />
+          <KpiCard label="overdue invoices" value={overdueInvoices} icon={Building2} />
         </div>
 
-        {/* Primary Row: Recent RFQs & Spends Chart */}
+        {/* Primary Row: Recent Purchase Orders Table & Spending Trends Chart */}
         <div className="grid gap-6 lg:grid-cols-3">
+          {/* Recent Purchase Orders */}
           <Card className="lg:col-span-2">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle>Recent RFQs</CardTitle>
+              <CardTitle>Recent Purchase Orders</CardTitle>
               <Button asChild variant="ghost" size="sm">
-                <Link to="/rfqs">View all</Link>
+                <Link to="/purchase-orders" className="flex items-center gap-1">
+                  View all <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
               </Button>
             </CardHeader>
             <CardContent>
-              <div className="divide-y">
-                {rfqs.slice(0, 4).map((r) => (
-                  <Link
-                    key={r.id}
-                    to="/rfqs/$id"
-                    params={{ id: r.id }}
-                    className="flex items-center justify-between py-3 hover:bg-muted/40 rounded px-2 -mx-2 transition-colors duration-150"
-                  >
-                    <div>
-                      <div className="text-sm font-medium">{r.title}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {r.number} • Deadline {r.deadline}
-                      </div>
-                    </div>
-                    <StatusBadge status={r.status} />
-                  </Link>
-                ))}
-                {rfqs.length === 0 && (
-                  <p className="py-6 text-center text-sm text-muted-foreground">No RFQs yet.</p>
-                )}
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>PO#</TableHead>
+                      <TableHead>Vendor</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pos.length > 0 ? (
+                      pos.slice(0, 4).map((p) => {
+                        const v = vendors.find((vendor) => vendor.id === p.vendorId);
+                        return (
+                          <TableRow key={p.id}>
+                            <TableCell className="font-medium text-accent hover:underline">
+                              <Link to="/purchase-orders/$id" params={{ id: p.id }}>
+                                {p.number}
+                              </Link>
+                            </TableCell>
+                            <TableCell>{v?.name ?? "Unknown Vendor"}</TableCell>
+                            <TableCell className="text-right font-mono">{formatCurrency(p.total)}</TableCell>
+                            <TableCell>
+                              <StatusBadge status={p.status} />
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    ) : (
+                      <>
+                        <TableRow>
+                          <TableCell className="font-medium text-accent hover:underline">
+                            <Link to="/purchase-orders">Po1</Link>
+                          </TableCell>
+                          <TableCell>Infra</TableCell>
+                          <TableCell className="text-right font-mono">{formatCurrency(87000)}</TableCell>
+                          <TableCell>
+                            <StatusBadge status="approved" />
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="font-medium text-accent hover:underline">
+                            <Link to="/purchase-orders">Po2</Link>
+                          </TableCell>
+                          <TableCell>Tech core</TableCell>
+                          <TableCell className="text-right font-mono">{formatCurrency(190000)}</TableCell>
+                          <TableCell>
+                            <StatusBadge status="pending" />
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="font-medium text-accent hover:underline">
+                            <Link to="/purchase-orders">Po3</Link>
+                          </TableCell>
+                          <TableCell>OfficeNeed Co</TableCell>
+                          <TableCell className="text-right font-mono">{formatCurrency(34900)}</TableCell>
+                          <TableCell>
+                            <StatusBadge status="draft" />
+                          </TableCell>
+                        </TableRow>
+                      </>
+                    )}
+                  </TableBody>
+                </Table>
               </div>
             </CardContent>
           </Card>
 
+          {/* Spending Trends last 6 months */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle>Spend Trend</CardTitle>
+              <CardTitle>Spending Trends last 6 months</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col justify-between h-[calc(100%-60px)]">
-              <div className="h-44 w-full mt-2">
+            <CardContent className="space-y-4">
+              {/* Top row: Legend on left, Pie chart on right */}
+              <div className="flex items-center justify-between border-b pb-4">
+                <div className="space-y-1 text-[11px]">
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-[oklch(0.45_0.15_260)] inline-block"></span>
+                    <span className="text-muted-foreground font-medium">Constructions</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-[oklch(0.62_0.16_160)] inline-block"></span>
+                    <span className="text-muted-foreground font-medium">IT</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-[oklch(0.78_0.15_80)] inline-block"></span>
+                    <span className="text-muted-foreground font-medium">Logistics</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-[oklch(0.58_0.22_27)] inline-block"></span>
+                    <span className="text-muted-foreground font-medium">Others</span>
+                  </div>
+                </div>
+                <div className="h-14 w-14 relative flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { value: 40, color: "oklch(0.45 0.15 260)" },
+                          { value: 30, color: "oklch(0.62 0.16 160)" },
+                          { value: 20, color: "oklch(0.78 0.15 80)" },
+                          { value: 10, color: "oklch(0.58 0.22 27)" },
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={10}
+                        outerRadius={24}
+                        paddingAngle={2}
+                        dataKey="value"
+                      >
+                        {
+                          [
+                            { color: "oklch(0.45 0.15 260)" },
+                            { color: "oklch(0.62 0.16 160)" },
+                            { color: "oklch(0.78 0.15 80)" },
+                            { color: "oklch(0.58 0.22 27)" },
+                          ].map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))
+                        }
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* AreaChart representing the spending trends */}
+              <div className="h-32 w-full mt-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={monthlyTrend} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                     <defs>
@@ -122,64 +230,42 @@ function DashboardPage() {
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
-              <div className="text-center text-xs text-muted-foreground mt-4">
-                Monthly PO spend analytics
+
+              {/* Mini orange volume bars at the bottom */}
+              <div className="h-10 w-full border-t pt-2 flex items-end justify-around">
+                <div className="h-4 w-4 bg-orange-400/90 rounded-sm" title="Volume 1"></div>
+                <div className="h-6 w-4 bg-orange-400/90 rounded-sm" title="Volume 2"></div>
+                <div className="h-8 w-4 bg-orange-400/90 rounded-sm" title="Volume 3"></div>
+                <div className="h-5 w-4 bg-orange-400/90 rounded-sm" title="Volume 4"></div>
+                <div className="h-7 w-4 bg-orange-400/90 rounded-sm" title="Volume 5"></div>
+                <div className="h-9 w-4 bg-orange-400/90 rounded-sm" title="Volume 6"></div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Secondary Row: Activity & Quick Navigation */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          <Card className="lg:col-span-2">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle>Recent Activity</CardTitle>
-              <Button asChild variant="ghost" size="sm">
-                <Link to="/activity">View all</Link>
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-4">
-                {activity.slice(0, 3).map((a) => (
-                  <li key={a.id} className="text-sm flex gap-3">
-                    <div className="mt-1 h-2 w-2 rounded-full bg-accent shrink-0" />
-                    <div>
-                      <div className="font-medium">{a.action}</div>
-                      <div className="text-xs text-muted-foreground">{a.detail}</div>
-                      <div className="text-[10px] text-muted-foreground/80">{new Date(a.at).toLocaleString()}</div>
-                    </div>
-                  </li>
-                ))}
-                {activity.length === 0 && (
-                  <p className="py-6 text-center text-sm text-muted-foreground">No activities logged.</p>
-                )}
-              </ul>
-            </CardContent>
-          </Card>
+        {/* Separator Line */}
+        <hr className="my-6 border-border" />
 
-          <div className="flex flex-col gap-4">
-            <QuickLink to="/vendors" icon={Building2} title="Vendors" body="Register and manage suppliers" />
-            <QuickLink to="/quotations" icon={Send} title="Quotations" body="Submit or review vendor quotes" />
-            <QuickLink to="/reports" icon={BarChart3} title="Reports" body="Spend trends and analytics" />
-          </div>
+        {/* Bottom Quick Action Buttons */}
+        <div className="flex flex-wrap gap-4 items-center justify-start">
+          <Button asChild className="h-11 px-6 font-semibold select-none">
+            <Link to="/rfqs/new">
+              <Plus className="mr-2 h-4 w-4" /> + new RFQ
+            </Link>
+          </Button>
+          <Button asChild variant="secondary" className="h-11 px-6 font-semibold select-none">
+            <Link to="/vendors/new">
+              Add Vendor
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="h-11 px-6 font-semibold select-none">
+            <Link to="/purchase-orders" search={{ type: "invoices" }}>
+              View Invoices
+            </Link>
+          </Button>
         </div>
       </PageBody>
     </>
-  );
-}
-
-function QuickLink({ to, icon: Icon, title, body }: { to: string; icon: LucideIcon; title: string; body: string }) {
-  return (
-    <Link to={to} className="group rounded-lg border bg-card p-4 hover:border-accent hover:shadow-sm transition duration-200">
-      <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-accent/10 text-accent group-hover:scale-105 transition-transform duration-200">
-          <Icon className="h-4 w-4" />
-        </div>
-        <div>
-          <div className="font-medium text-sm">{title}</div>
-          <div className="text-xs text-muted-foreground">{body}</div>
-        </div>
-      </div>
-    </Link>
   );
 }

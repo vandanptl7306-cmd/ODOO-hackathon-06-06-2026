@@ -16,18 +16,32 @@ function POListPage() {
   const vendors = useData((s) => s.vendors);
   const rfqs = useData((s) => s.rfqs);
 
+  // Check if we are viewing the invoices list
+  const isInvoiceMode = typeof window !== "undefined" && window.location.search.includes("type=invoices");
+
+  const titleText = isInvoiceMode ? "Invoices" : "Purchase Orders";
+  const descText = isInvoiceMode 
+    ? "Billing records auto-generated from purchase orders." 
+    : "Auto-generated from approved quotations.";
+
   return (
     <>
-      <PageHeader title="Purchase Orders" description="Auto-generated from approved quotations." />
+      <PageHeader title={titleText} description={descText} />
       <PageBody>
         {pos.length === 0 ? (
-          <EmptyState title="No purchase orders" description="Approve a quotation in Approvals to generate the first PO." />
+          <EmptyState 
+            title={isInvoiceMode ? "No invoices" : "No purchase orders"} 
+            description={isInvoiceMode 
+              ? "Invoices will appear once a purchase order is generated." 
+              : "Approve a quotation in Approvals to generate the first PO."
+            } 
+          />
         ) : (
           <Card>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>PO Number</TableHead>
+                  <TableHead>{isInvoiceMode ? "Invoice Number" : "PO Number"}</TableHead>
                   <TableHead>Vendor</TableHead>
                   <TableHead>RFQ</TableHead>
                   <TableHead>Issued</TableHead>
