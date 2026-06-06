@@ -56,7 +56,7 @@ function RfqsPage() {
                       <TableCell>
                         <Link to="/rfqs/$id" params={{ id: r.id }} className="block">
                           <div className="font-medium">{r.title}</div>
-                          <div className="text-xs text-muted-foreground">{r.number}</div>
+                          <div className="text-xs text-muted-foreground">{r.number} {r.category ? `• ${r.category}` : ""}</div>
                         </Link>
                       </TableCell>
                       <TableCell>{r.items.length}</TableCell>

@@ -44,6 +44,7 @@ export interface Rfq {
   number: string;
   title: string;
   description: string;
+  category?: string;
   items: RfqLineItem[];
   deadline: string;
   invitedVendorIds: string[];

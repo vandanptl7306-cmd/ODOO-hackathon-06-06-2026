@@ -32,7 +32,7 @@ function RfqDetailPage() {
     <>
       <PageHeader
         title={rfq.title}
-        description={`${rfq.number} • Deadline ${rfq.deadline}`}
+        description={`${rfq.number} ${rfq.category ? `• ${rfq.category} ` : ""}• Deadline ${rfq.deadline}`}
         actions={
           <>
             <Button asChild variant="outline"><Link to="/rfqs"><ArrowLeft className="mr-2 h-4 w-4" />Back</Link></Button>

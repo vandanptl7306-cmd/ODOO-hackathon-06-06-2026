@@ -57,10 +57,11 @@ function NewRfqPage() {
   // Default wireframe states
   const [title, setTitle] = useState("Office Furniture procurement Q2");
   const [category, setCategory] = useState("Furniture");
-  const [deadline, setDeadline] = useState("2025-06-15");
+  const [deadline, setDeadline] = useState("15 June 2025");
   const [description, setDescription] = useState(
     "Ergonomic chairs and standing desks for 3rd floor"
   );
+  const [vendorSelectVal, setVendorSelectVal] = useState("");
 
   // Line items prepopulated with wireframe examples
   const [items, setItems] = useState<Line[]>([
@@ -131,6 +132,7 @@ function NewRfqPage() {
       invitedVendorIds: invited,
       createdBy: user?.name || "Procurement Officer",
       status,
+      category,
     });
 
     toast.success(
@@ -226,7 +228,7 @@ function NewRfqPage() {
                 </Label>
                 <Input
                   id="deadline"
-                  type="date"
+                  type="text"
                   required
                   value={deadline}
                   onChange={(e) => setDeadline(e.target.value)}
@@ -392,8 +394,9 @@ function NewRfqPage() {
                     if (val && !invited.includes(val)) {
                       setInvited([...invited, val]);
                     }
+                    setVendorSelectVal("");
                   }}
-                  value=""
+                  value={vendorSelectVal}
                 >
                   <SelectTrigger className="w-full h-10 bg-white font-semibold text-xs border-dashed text-muted-foreground hover:bg-muted/30">
                     <SelectValue placeholder="+ add vendor" />
