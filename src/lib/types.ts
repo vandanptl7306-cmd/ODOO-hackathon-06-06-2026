@@ -53,11 +53,12 @@ export interface Rfq {
   createdAt: string;
 }
 
-export type QuotationStatus = "submitted" | "approved" | "rejected";
+export type QuotationStatus = "draft" | "submitted" | "approved" | "rejected";
 
 export interface QuotationLine {
   itemId: string;
   unitPrice: number;
+  deliveryDays?: number;
 }
 
 export interface Quotation {

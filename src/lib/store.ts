@@ -4,6 +4,7 @@ import type {
   ActivityEntry,
   PurchaseOrder,
   Quotation,
+  QuotationStatus,
   Rfq,
   Role,
   User,
@@ -78,7 +79,7 @@ interface DataState {
   addRfq: (r: Omit<Rfq, "id" | "number" | "createdAt" | "status"> & { status?: RfqStatus }) => Rfq;
   updateRfq: (id: string, patch: Partial<Rfq>) => void;
 
-  addQuotation: (q: Omit<Quotation, "id" | "submittedAt" | "status">) => Quotation;
+  addQuotation: (q: Omit<Quotation, "id" | "submittedAt" | "status"> & { status?: QuotationStatus }) => Quotation;
   updateQuotation: (id: string, patch: Partial<Quotation>) => void;
 
   approveQuotation: (id: string, remark: string, approver: string) => PurchaseOrder | null;
@@ -134,7 +135,7 @@ export const useData = create<DataState>()(
           ...q,
           id: uid("q"),
           submittedAt: new Date().toISOString(),
-          status: "submitted",
+          status: q.status || "submitted",
         };
         set((s) => ({ quotations: [quotation, ...s.quotations] }));
         const vendor = get().vendors.find((v) => v.id === q.vendorId);
