@@ -75,7 +75,7 @@ interface DataState {
   updateVendor: (id: string, patch: Partial<Vendor>) => void;
   deleteVendor: (id: string) => void;
 
-  addRfq: (r: Omit<Rfq, "id" | "number" | "createdAt" | "status">) => Rfq;
+  addRfq: (r: Omit<Rfq, "id" | "number" | "createdAt" | "status"> & { status?: RfqStatus }) => Rfq;
   updateRfq: (id: string, patch: Partial<Rfq>) => void;
 
   addQuotation: (q: Omit<Quotation, "id" | "submittedAt" | "status">) => Quotation;
@@ -120,7 +120,7 @@ export const useData = create<DataState>()(
           id: uid("r"),
           number: nextNumber("RFQ", get().rfqs.length),
           createdAt: new Date().toISOString().slice(0, 10),
-          status: "open",
+          status: r.status || "open",
         };
         set((s) => ({ rfqs: [rfq, ...s.rfqs] }));
         get().log({ actor: r.createdBy, action: "RFQ created", detail: `${rfq.number} — ${rfq.title}`, refType: "rfq", refId: rfq.id });
