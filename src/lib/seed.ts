@@ -64,6 +64,22 @@ export const seedRfqs: Rfq[] = [
     createdBy: "Procurement Officer",
     createdAt: "2026-05-25",
   },
+  {
+    id: "r3",
+    number: "RFQ-2026-0003",
+    title: "Office Furniture procurement Q2",
+    description: "Ergonomic chairs and standing desks for 3rd floor",
+    items: [
+      { id: "li4", name: "Ergonomic chair", quantity: 25, unit: "NOS", specification: "High back mesh, adjustable armrest" },
+      { id: "li5", name: "Tech Core LTD", quantity: 10, unit: "NOS", specification: "Dual motor, height adjustable" },
+    ],
+    deadline: "15 June 2025",
+    invitedVendorIds: ["v1", "v2"],
+    status: "open",
+    createdBy: "Procurement Officer",
+    category: "Furniture",
+    createdAt: "2026-06-05",
+  },
 ];
 
 export const seedQuotations: Quotation[] = [
