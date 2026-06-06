@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { ArrowLeft, Star, TrendingDown, Zap } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,7 +15,8 @@ function ComparePage() {
   const { id } = Route.useParams();
   const rfq = useData((s) => s.rfqs.find((r) => r.id === id));
   const vendors = useData((s) => s.vendors);
-  const quotations = useData((s) => s.quotations.filter((q) => q.rfqId === id));
+  const allQuotations = useData((s) => s.quotations);
+  const quotations = useMemo(() => allQuotations.filter((q) => q.rfqId === id), [allQuotations, id]);
 
   if (!rfq) return <PageBody><p>RFQ not found.</p></PageBody>;
 

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { Plus, X, Upload } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/page-header";
@@ -50,7 +50,8 @@ function newLine(): Line {
 
 function NewRfqPage() {
   const navigate = useNavigate();
-  const vendors = useData((s) => s.vendors.filter((v) => v.status === "active"));
+  const allVendors = useData((s) => s.vendors);
+  const vendors = useMemo(() => allVendors.filter((v) => v.status === "active"), [allVendors]);
   const addRfq = useData((s) => s.addRfq);
   const user = useAuth((s) => s.user);
 
@@ -61,7 +62,6 @@ function NewRfqPage() {
   const [description, setDescription] = useState(
     "Ergonomic chairs and standing desks for 3rd floor"
   );
-  const [vendorSelectVal, setVendorSelectVal] = useState("");
 
   // Line items prepopulated with wireframe examples
   const [items, setItems] = useState<Line[]>([
@@ -85,6 +85,8 @@ function NewRfqPage() {
   const [invited, setInvited] = useState<string[]>(
     vendors.filter((v) => v.id === "v1" || v.id === "v2").map((v) => v.id)
   );
+
+  const [selectedVendorToAdd, setSelectedVendorToAdd] = useState("");
 
   const toggleVendor = (id: string) => {
     setInvited((prev) =>
@@ -199,27 +201,27 @@ function NewRfqPage() {
                 <Label htmlFor="category" className="font-semibold text-sm">
                   Category
                 </Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger id="category" className="h-10 bg-white">
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[
-                      "Furniture",
-                      "Hardware",
-                      "IT",
-                      "Logistics",
-                      "Electrical",
-                      "Raw Materials",
-                      "Software",
-                      "Services",
-                    ].map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <select
+                  id="category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer"
+                >
+                  {[
+                    "Furniture",
+                    "Hardware",
+                    "IT",
+                    "Logistics",
+                    "Electrical",
+                    "Raw Materials",
+                    "Software",
+                    "Services",
+                  ].map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-2">
@@ -389,28 +391,28 @@ function NewRfqPage() {
                 </div>
 
                 {/* Select dropdown to add a vendor */}
-                <Select
-                  onValueChange={(val) => {
+                <select
+                  value={selectedVendorToAdd}
+                  onChange={(e) => {
+                    const val = e.target.value;
                     if (val && !invited.includes(val)) {
-                      setInvited([...invited, val]);
+                      setInvited((prev) => [...prev, val]);
                     }
-                    setVendorSelectVal("");
+                    setSelectedVendorToAdd("");
                   }}
-                  value={vendorSelectVal}
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-dashed border-input bg-white px-3 py-2 text-xs text-muted-foreground hover:bg-muted/30 cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring"
                 >
-                  <SelectTrigger className="w-full h-10 bg-white font-semibold text-xs border-dashed text-muted-foreground hover:bg-muted/30">
-                    <SelectValue placeholder="+ add vendor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {vendors
-                      .filter((v) => !invited.includes(v.id))
-                      .map((v) => (
-                        <SelectItem key={v.id} value={v.id}>
-                          {v.name} ({v.category})
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                  <option value="" disabled>
+                    + add vendor
+                  </option>
+                  {vendors
+                    .filter((v) => !invited.includes(v.id))
+                    .map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.name} ({v.category})
+                      </option>
+                    ))}
+                </select>
               </CardContent>
             </Card>
           </div>

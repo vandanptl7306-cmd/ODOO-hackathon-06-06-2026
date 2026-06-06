@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 import { PageHeader, PageBody, EmptyState } from "@/components/page-header";
@@ -17,7 +17,8 @@ export const Route = createFileRoute("/_authenticated/approvals")({
 
 function ApprovalsPage() {
   const user = useAuth((s) => s.user);
-  const quotations = useData((s) => s.quotations.filter((q) => q.status === "submitted"));
+  const allQuotations = useData((s) => s.quotations);
+  const quotations = useMemo(() => allQuotations.filter((q) => q.status === "submitted"), [allQuotations]);
   const rfqs = useData((s) => s.rfqs);
   const vendors = useData((s) => s.vendors);
   const approve = useData((s) => s.approveQuotation);

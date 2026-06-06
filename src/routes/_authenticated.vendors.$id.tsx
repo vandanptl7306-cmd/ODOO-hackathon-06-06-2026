@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/page-header";
@@ -25,7 +25,8 @@ function VendorDetailPage() {
   const vendor = useData((s) => s.vendors.find((v) => v.id === id));
   const updateVendor = useData((s) => s.updateVendor);
   const deleteVendor = useData((s) => s.deleteVendor);
-  const quotations = useData((s) => s.quotations.filter((q) => q.vendorId === id));
+  const allQuotations = useData((s) => s.quotations);
+  const quotations = useMemo(() => allQuotations.filter((q) => q.vendorId === id), [allQuotations, id]);
   const [form, setForm] = useState(vendor);
 
   if (!vendor || !form) {
