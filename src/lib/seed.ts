@@ -86,9 +86,36 @@ export const seedQuotations: Quotation[] = [
   { id: "q1", rfqId: "r1", vendorId: "v1", lines: [{ itemId: "li1", unitPrice: 78000 }, { itemId: "li2", unitPrice: 6500 }], deliveryDays: 14, taxPercent: 18, notes: "Bulk discount applied.", status: "submitted", submittedAt: "2026-06-03" },
   { id: "q2", rfqId: "r1", vendorId: "v3", lines: [{ itemId: "li1", unitPrice: 82000 }, { itemId: "li2", unitPrice: 5800 }], deliveryDays: 10, taxPercent: 18, notes: "Free onsite setup.", status: "submitted", submittedAt: "2026-06-04" },
   { id: "q3", rfqId: "r2", vendorId: "v2", lines: [{ itemId: "li3", unitPrice: 14500 }], deliveryDays: 21, taxPercent: 18, notes: "Installation included.", status: "submitted", submittedAt: "2026-06-02" },
+  {
+    id: "q4",
+    rfqId: "r3",
+    vendorId: "v1",
+    lines: [
+      { itemId: "li4", unitPrice: 3500, deliveryDays: 7 },
+      { itemId: "li5", unitPrice: 8200, deliveryDays: 14 }
+    ],
+    deliveryDays: 14,
+    taxPercent: 18,
+    notes: "Payment terms: 20 days net...",
+    status: "approved",
+    submittedAt: "2025-05-20"
+  }
 ];
 
-export const seedPOs: PurchaseOrder[] = [];
+export const seedPOs: PurchaseOrder[] = [
+  {
+    id: "po1",
+    number: "PO-2025-0068",
+    rfqId: "r3",
+    quotationId: "q4",
+    vendorId: "v1",
+    subtotal: 169500,
+    tax: 30510,
+    total: 200010,
+    status: "pending_payment",
+    createdAt: "2025-05-21"
+  }
+];
 
 export const seedActivity: ActivityEntry[] = [
   { id: "a1", at: "2026-06-01T09:00:00Z", actor: "Procurement Officer", action: "RFQ created", detail: "RFQ-2026-0001 — Office laptops Q2", refType: "rfq", refId: "r1" },

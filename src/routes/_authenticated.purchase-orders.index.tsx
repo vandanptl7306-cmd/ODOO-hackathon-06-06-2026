@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/table";
 import { StatusBadge } from "@/components/status-badge";
 import { useData, formatCurrency } from "@/lib/store";
+import { PurchaseOrderDetailView } from "./_authenticated.purchase-orders.$id";
 
 export const Route = createFileRoute("/_authenticated/purchase-orders/")({
   component: POListPage,
@@ -19,10 +20,24 @@ function POListPage() {
   // Check if we are viewing the invoices list
   const isInvoiceMode = typeof window !== "undefined" && window.location.search.includes("type=invoices");
 
-  const titleText = isInvoiceMode ? "Invoices" : "Purchase Orders";
-  const descText = isInvoiceMode 
-    ? "Billing records auto-generated from purchase orders." 
-    : "Auto-generated from approved quotations.";
+  if (isInvoiceMode) {
+    const po1 = pos.find((p) => p.id === "po1");
+    return (
+      <PageBody>
+        {po1 ? (
+          <PurchaseOrderDetailView poId="po1" />
+        ) : (
+          <EmptyState 
+            title="No invoices" 
+            description="Invoices will appear once a purchase order is generated." 
+          />
+        )}
+      </PageBody>
+    );
+  }
+
+  const titleText = "Purchase Orders";
+  const descText = "Auto-generated from approved quotations.";
 
   return (
     <>

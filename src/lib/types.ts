@@ -74,7 +74,7 @@ export interface Quotation {
   submittedAt: string;
 }
 
-export type POStatus = "issued" | "in_progress" | "completed" | "cancelled";
+export type POStatus = "issued" | "in_progress" | "completed" | "cancelled" | "pending_payment" | "paid";
 
 export interface PurchaseOrder {
   id: string;

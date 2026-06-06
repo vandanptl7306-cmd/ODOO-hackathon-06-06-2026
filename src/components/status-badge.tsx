@@ -18,6 +18,8 @@ const styles: Record<string, string> = {
   in_progress: "bg-warning/20 text-warning-foreground border-warning/40",
   completed: "bg-success/15 text-success border-success/30",
   cancelled: "bg-destructive/15 text-destructive border-destructive/30",
+  pending_payment: "bg-warning/20 text-warning-foreground border-warning/40",
+  paid: "bg-success/15 text-success border-success/30",
 };
 
 export function StatusBadge({ status }: { status: string }) {
